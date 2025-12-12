@@ -7,37 +7,22 @@ import IncomePage from './components/IncomePage';
 import StatsPage from './components/StatsPage';
 import LandingPage from './components/LandingPage';
 import HistoryPage from './components/HistoryPage';
+import SettingsPage from './components/SettingsPage';
 import { Transaction, Cheongmo } from './types';
-
-// Mock Initial Data
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: '1', type: 'GIVEN', eventType: 'WEDDING', name: '김민수', relation: 'FRIEND', amount: 100000, date: '2024-03-15', location: '더채플', hasMeal: true },
-  { id: '2', type: 'GIVEN', eventType: 'FUNERAL', name: '박지영', relation: 'COLLEAGUE', amount: 50000, date: '2024-04-02', location: '서울성모병원', hasMeal: false },
-  { id: '3', type: 'RECEIVED', eventType: 'WEDDING', name: '최강호', relation: 'FRIEND', amount: 150000, date: '2024-10-20' },
-  { id: '4', type: 'GIVEN', eventType: 'FIRST_BIRTHDAY', name: '이서준', relation: 'FAMILY', amount: 100000, date: '2024-05-05', hasMeal: true },
-];
-
-const INITIAL_CHEONGMO: Cheongmo[] = [
-    { id: '101', name: '고등학교 동창 청모', date: '2024-08-15', location: '강남 고기집', totalCost: 320000, guestCount: 6 }
-];
+import { storage } from './services/storage';
 
 const App: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>(() => {
-      const saved = localStorage.getItem('transactions');
-      return saved ? JSON.parse(saved) : INITIAL_TRANSACTIONS;
-  });
+  // Load initial data from storage service
+  const [transactions, setTransactions] = useState<Transaction[]>(() => storage.getTransactions());
+  const [cheongmos, setCheongmos] = useState<Cheongmo[]>(() => storage.getCheongmos());
 
-  const [cheongmos, setCheongmos] = useState<Cheongmo[]>(() => {
-      const saved = localStorage.getItem('cheongmos');
-      return saved ? JSON.parse(saved) : INITIAL_CHEONGMO;
-  });
-
+  // Save to storage whenever state changes
   useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
+    storage.saveTransactions(transactions);
   }, [transactions]);
 
   useEffect(() => {
-    localStorage.setItem('cheongmos', JSON.stringify(cheongmos));
+    storage.saveCheongmos(cheongmos);
   }, [cheongmos]);
 
   const addTransaction = (t: Transaction) => {
@@ -46,6 +31,12 @@ const App: React.FC = () => {
 
   const addCheongmo = (c: Cheongmo) => {
     setCheongmos(prev => [c, ...prev]);
+  };
+
+  // Used by SettingsPage to refresh data after import/reset
+  const refreshData = () => {
+    setTransactions(storage.getTransactions());
+    setCheongmos(storage.getCheongmos());
   };
 
   return (
@@ -104,7 +95,7 @@ const App: React.FC = () => {
           path="/settings" 
           element={
             <Layout>
-              <div className="text-center pt-20 text-gray-400">준비 중입니다 ⚙️</div>
+              <SettingsPage onDataChange={refreshData} />
             </Layout>
           } 
         />
