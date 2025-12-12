@@ -8,8 +8,19 @@ import StatsPage from './components/StatsPage';
 import LandingPage from './components/LandingPage';
 import HistoryPage from './components/HistoryPage';
 import SettingsPage from './components/SettingsPage';
+import LoginPage from './components/LoginPage';
 import { Transaction, Cheongmo } from './types';
 import { storage } from './services/storage';
+import { authService } from './services/authService';
+
+// Wrapper for protected routes
+const ProtectedRoute = ({ children }: { children?: React.ReactNode }) => {
+  const isAuthenticated = authService.isAuthenticated();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
 
 const App: React.FC = () => {
   // Load initial data from storage service
@@ -42,61 +53,74 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Landing Page - No Layout */}
+        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
         
-        {/* App Pages - With Layout */}
+        {/* Protected Routes - All require Layout and Authentication */}
         <Route 
           path="/dashboard" 
           element={
-            <Layout>
-              <Dashboard transactions={transactions} cheongmos={cheongmos} />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard transactions={transactions} cheongmos={cheongmos} />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/history" 
           element={
-            <Layout>
-              <HistoryPage transactions={transactions} cheongmos={cheongmos} />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <HistoryPage transactions={transactions} cheongmos={cheongmos} />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/record" 
           element={
-            <Layout>
-              <RecordPage 
-                onAddTransaction={addTransaction} 
-                onAddCheongmo={addCheongmo} 
-              />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <RecordPage 
+                  onAddTransaction={addTransaction} 
+                  onAddCheongmo={addCheongmo} 
+                />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/income" 
           element={
-            <Layout>
-              <IncomePage 
-                onAddTransaction={addTransaction} 
-              />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <IncomePage 
+                  onAddTransaction={addTransaction} 
+                />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/stats" 
           element={
-            <Layout>
-              <StatsPage transactions={transactions} cheongmos={cheongmos} />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <StatsPage transactions={transactions} cheongmos={cheongmos} />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         <Route 
           path="/settings" 
           element={
-            <Layout>
-              <SettingsPage onDataChange={refreshData} />
-            </Layout>
+            <ProtectedRoute>
+              <Layout>
+                <SettingsPage onDataChange={refreshData} />
+              </Layout>
+            </ProtectedRoute>
           } 
         />
         {/* Fallback */}

@@ -1,5 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { storage } from '../services/storage';
+import { authService } from '../services/authService';
+import { User } from '../types';
 
 interface SettingsPageProps {
   onDataChange: () => void;
@@ -7,6 +10,12 @@ interface SettingsPageProps {
 
 const SettingsPage: React.FC<SettingsPageProps> = ({ onDataChange }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(authService.getCurrentUser());
+  }, []);
 
   const handleExport = () => {
     const jsonString = storage.exportData();
@@ -51,6 +60,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onDataChange }) => {
     }
   };
 
+  const handleLogout = () => {
+    if (window.confirm('로그아웃 하시겠습니까?')) {
+      authService.logout();
+      navigate('/login');
+    }
+  };
+
   return (
     <div className="pb-10">
       <header className="mb-6">
@@ -58,19 +74,26 @@ const SettingsPage: React.FC<SettingsPageProps> = ({ onDataChange }) => {
         <p className="text-sm text-gray-400 mt-1">내 정보와 데이터를 관리합니다.</p>
       </header>
 
-      {/* User Info (Mock) */}
+      {/* User Info */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mb-6">
         <h3 className="text-lg font-bold text-[#333D4B] mb-4">내 정보</h3>
         <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center text-xl">
-                👤
+            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center overflow-hidden">
+                {user?.photoUrl ? (
+                  <img src={user.photoUrl} alt="profile" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-2xl">👤</span>
+                )}
             </div>
             <div>
-                <div className="font-bold">예비 신혼부부</div>
-                <div className="text-sm text-gray-400">pumasi@example.com</div>
+                <div className="font-bold">{user?.name || '사용자'}</div>
+                <div className="text-sm text-gray-400">{user?.email || '로그인이 필요합니다'}</div>
             </div>
-            <button className="ml-auto text-xs text-blue-500 font-bold bg-blue-50 px-3 py-1.5 rounded-full">
-                수정
+            <button 
+              onClick={handleLogout}
+              className="ml-auto text-xs text-gray-500 font-bold bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200"
+            >
+                로그아웃
             </button>
         </div>
       </div>

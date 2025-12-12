@@ -5,6 +5,13 @@ export type EventType = 'WEDDING' | 'FUNERAL' | 'FIRST_BIRTHDAY' | 'OTHER';
 
 export type TargetType = 'GROOM' | 'BRIDE' | 'GROOM_FAMILY' | 'BRIDE_FAMILY' | 'OTHER';
 
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  photoUrl?: string;
+}
+
 export interface Transaction {
   id: string;
   type: 'GIVEN' | 'RECEIVED';
